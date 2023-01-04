@@ -16,7 +16,7 @@ class NerdPress_Support_Snapshot
 	public static function init()
 	{
 		$class = __CLASS__;
-		new $class;
+		new $class();
 	}
 
 	public function __construct()
@@ -35,7 +35,11 @@ class NerdPress_Support_Snapshot
 		// If the request is a one-time call from the relay.
 		if (isset($_GET['np_snapshot']) && NerdPress_Helpers::is_relay_server_configured()) {
 			self::take_snapshot();
-			wp_safe_redirect($_SERVER['HTTP_REFERER']);
+
+			if (isset($_SERVER['HTTP_REFERER'])) {
+				wp_safe_redirect(wp_unslash($_SERVER['HTTP_REFERER']));
+			}
+
 			die;
 		}
 	}
@@ -84,7 +88,6 @@ class NerdPress_Support_Snapshot
 			'sslverify' => $status,
 		);
 
-
 		// Make request to the relay server.
 		$api_response = wp_remote_post($relay_url, $args);
 
@@ -125,9 +128,9 @@ class NerdPress_Support_Snapshot
 		$disk_space                       = NerdPress_Helpers::get_disk_info()['disk_free'];
 
 		$dump                             = array();
-		$dump['free_disk_space']          = $disk_space == "Unavailable" ? null : $disk_space;
+		$dump['free_disk_space']          = "Unavailable" == $disk_space ? null : $disk_space;
 		$dump['firewall_setting']         = self::format_firewall_choice($options);
-		$dump['document_root']            = $_SERVER['DOCUMENT_ROOT'];
+		$dump['document_root']            = isset($_SERVER['DOCUMENT_ROOT']) ? wp_unslash($_SERVER['DOCUMENT_ROOT']) : null;
 		$dump['php_version']              = phpversion();
 		$dump['domain']                   = $user;
 		$dump['all_plugins']              = $current_plugins;
@@ -139,7 +142,7 @@ class NerdPress_Support_Snapshot
 		$dump['plugin_update_data']       = get_option('_site_transient_update_plugins')->response;
 		$dump['wordpress_version']        = $wp_version;
 		$dump['notes']                    = $options['admin_notice'];
-		$dump['server_software']          = $_SERVER['SERVER_SOFTWARE'];
+		$dump['server_software']          = isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : null;
 
 		$dump['sucuri_api_key']            = NerdPress_Helpers::is_sucuri_firewall_api_key_set() ? implode("/", NerdPress_Helpers::get_sucuri_api()) : null;
 		$dump['sucuri_notification_email'] = NerdPress_Helpers::is_sucuri_notification_email_set() ? NerdPress_Helpers::get_sucuri_notification_email() : null;
@@ -169,22 +172,22 @@ class NerdPress_Support_Snapshot
 
 	private function format_firewall_choice($options)
 	{
-		if ($options['firewall_choice'] === "cloudflare") {
+		if ("cloudflare" === $options['firewall_choice']) {
 			$firewall = "Cloudflare";
 			$zone = "";
 
-			if ($options["cloudflare_zone"] === "dns1") {
+			if ("dns1" === $options["cloudflare_zone"]) {
 				$zone = "1";
-			} else if ($options["cloudflare_zone"] === "dns2") {
+			} else if ("dns2" === $options["cloudflare_zone"]) {
 				$zone = "2";
-			} else if ($options["cloudflare_zone"] === "dns3") {
+			} else if ("dns3" === $options["cloudflare_zone"]) {
 				$zone = "3";
 			}
 
 			return $firewall . " " . $zone;
 		}
 
-		if ($options["firewall_choice"] === "sucuri") {
+		if ("sucuri" === $options["firewall_choice"]) {
 			return "Sucuri";
 		}
 
@@ -194,12 +197,12 @@ class NerdPress_Support_Snapshot
 
 	private function filter_active_plugins($all_plugins, $active_plugins)
 	{
-		return array_filter($all_plugins, fn ($key) => in_array($key, $active_plugins), ARRAY_FILTER_USE_KEY);
+		return array_filter($all_plugins, fn ($key) => in_array($key, $active_plugins, true), ARRAY_FILTER_USE_KEY);
 	}
 
 	private function filter_inactive_plugins($all_plugins, $active_plugins)
 	{
-		return array_filter($all_plugins, fn ($key) => !in_array($key, $active_plugins), ARRAY_FILTER_USE_KEY);
+		return array_filter($all_plugins, fn ($key) => !in_array($key, $active_plugins, true), ARRAY_FILTER_USE_KEY);
 	}
 }
 
