@@ -32,8 +32,15 @@ class NerdPress_Support_Snapshot
 	 */
 	public static function ping_relay()
 	{
+
 		// If the request is a one-time call from the relay.
 		if (isset($_GET['np_snapshot']) && NerdPress_Helpers::is_relay_server_configured()) {
+			$nonce = $_REQUEST['_wpnonce'];
+
+			if (!wp_verify_nonce($nonce, 'np_snapshot')) {
+				die(__('Security check', 'nerdpress-support'));
+			}
+
 			self::take_snapshot();
 
 			if (isset($_SERVER['HTTP_REFERER'])) {

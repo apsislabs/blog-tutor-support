@@ -221,10 +221,12 @@ function bt_custom_toolbar_links( $wp_admin_bar ) {
 				$query_char = '?';
 			}
 
+			$snapshot_nonce = wp_create_nonce( 'np_snapshot' );
+
 			$args = array(
 				'id'     => 'bt-send-snapshot',
 				'title'  => 'Send Snapshot to Relay',
-				'href'   => get_site_url() . $_SERVER['REQUEST_URI'] . $query_char . 'np_snapshot',
+				'href'   => get_site_url() . $_SERVER['REQUEST_URI'] . $query_char . 'np_snapshot=1' . $query_char . "_wpnonce=" . $snapshot_nonce,
 				'parent' => 'nerdpress-menu',
 				'meta'   => array(
 					'class' => 'btButton',
