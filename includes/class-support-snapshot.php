@@ -32,22 +32,17 @@ class NerdPress_Support_Snapshot
 	 */
 	public static function ping_relay()
 	{
+		if (isset($_REQUEST['_snapshot_nonce']) && wp_verify_nonce($_REQUEST['_snapshot_nonce'], 'np_snapshot')) {
+			// If the request is a one-time call from the relay.
+			if (isset($_GET['np_snapshot']) && NerdPress_Helpers::is_relay_server_configured()) {
+				self::take_snapshot();
 
-		// If the request is a one-time call from the relay.
-		if (isset($_GET['np_snapshot']) && NerdPress_Helpers::is_relay_server_configured()) {
-			$nonce = $_REQUEST['_wpnonce'];
+				if (isset($_SERVER['HTTP_REFERER'])) {
+					wp_safe_redirect(wp_unslash($_SERVER['HTTP_REFERER']));
+				}
 
-			if (!wp_verify_nonce($nonce, 'np_snapshot')) {
-				die(__('Security check', 'nerdpress-support'));
+				die;
 			}
-
-			self::take_snapshot();
-
-			if (isset($_SERVER['HTTP_REFERER'])) {
-				wp_safe_redirect(wp_unslash($_SERVER['HTTP_REFERER']));
-			}
-
-			die;
 		}
 	}
 
