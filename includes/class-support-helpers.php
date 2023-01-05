@@ -93,7 +93,6 @@ class NerdPress_Helpers {
 		return (
 			current_user_can( 'administrator' )
 			&& ( strpos( $current_user->user_email, '@blogtutor.com' ) !== false
-			|| strpos( $current_user->user_email, '@apsis.io' ) !== false
 			|| strpos( $current_user->user_email, '@nerdpress.net' ) !== false ) );
 	}
 
